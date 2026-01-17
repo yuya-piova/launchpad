@@ -24,7 +24,6 @@ const STATE_COLORS: { [key: string]: string } = {
 export default function Dashboard() {
   const [columns, setColumns] = useState<{ [key: string]: any[] }>({});
   const [loading, setLoading] = useState(true);
-  const [quickTask, setQuickTask] = useState('');
 
   // データ取得関数
   const fetchTasks = async () => {
@@ -312,29 +311,6 @@ export default function Dashboard() {
     fetchTasks();
   }, []);
 
-  // Quick Add 送信処理
-  const handleQuickAdd = async (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && quickTask.trim()) {
-      const title = quickTask;
-      setQuickTask('');
-
-      try {
-        const res = await fetch('/api/notion/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title }),
-        });
-
-        if (res.ok) {
-          fetchTasks();
-        }
-      } catch (err) {
-        console.error('Quick Add failed', err);
-        setQuickTask(title);
-      }
-    }
-  };
-
   if (loading)
     return (
       <div className="p-8 text-gray-500 font-mono text-xs uppercase tracking-widest">
@@ -349,35 +325,6 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col h-full bg-[#0F0F0F] overflow-hidden">
-      {/* メインヘッダー */}
-      <header className="h-[72px] border-b border-white/5 flex items-center justify-between px-8 bg-[#0F0F0F]/80 backdrop-blur-xl shrink-0">
-        <div className="w-48"></div>
-        <div className="flex-1 max-w-xl">
-          <div className="bg-white/5 border border-white/10 flex items-center px-4 py-2 rounded-full focus-within:border-blue-500/50 transition-all">
-            <Plus size={16} className="text-gray-500 mr-3" />
-            <input
-              type="text"
-              value={quickTask}
-              onChange={(e) => setQuickTask(e.target.value)}
-              onKeyDown={handleQuickAdd}
-              placeholder="Task, Date, Description..."
-              className="bg-transparent border-none outline-none w-full text-sm text-gray-200 placeholder:text-gray-600"
-            />
-            <kbd className="text-[9px] text-gray-600 ml-2 font-mono">ENTER</kbd>
-          </div>
-        </div>
-        <div className="w-48 flex items-center justify-end space-x-2">
-          <button className="w-8 h-8 rounded-full hover:bg-white/5 flex items-center justify-center text-gray-400">
-            <Bell size={18} />
-          </button>
-          <div className="w-px h-4 bg-white/10 mx-2"></div>
-          <button className="bg-white/5 border border-white/10 px-3 py-1.5 rounded-md text-[11px] font-bold flex items-center hover:bg-white/10 transition">
-            <Bot size={14} className="mr-2 text-purple-400" />
-            AI議事録
-          </button>
-        </div>
-      </header>
-
       <div className="px-8 pt-6 pb-2 flex items-baseline justify-between shrink-0">
         <h2 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
           Weekly Focus
