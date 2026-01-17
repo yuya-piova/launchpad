@@ -1,5 +1,4 @@
 // @ts-nocheck
-import type { NextConfig } from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
@@ -7,12 +6,12 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
-const nextConfig: NextConfig = {
-  // ESLint のチェックでビルドが止まらないようにする
-  eslint: {
-    ignoreDuringBuilds: true,
+const nextConfig = {
+  // Turbopackを無効化しWebpackを強制する設定
+  webpack: (config) => {
+    return config;
   },
-  // TypeScript の型エラーでビルドが止まらないようにする（念のため）
+  // セキュリティエラーが出る場合は、ここでのチェックを外す
   typescript: {
     ignoreBuildErrors: true,
   },
