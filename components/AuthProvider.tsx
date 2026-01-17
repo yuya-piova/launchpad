@@ -2,19 +2,16 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Contextの型定義
 interface AuthContextType {
   isAuthenticated: boolean;
   login: (password: string) => Promise<boolean>;
 }
 
-// Contextの作成
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   login: async () => false,
 });
 
-// Providerコンポーネントのエクスポート
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -45,5 +42,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Hookのエクスポート
 export const useAuth = () => useContext(AuthContext);

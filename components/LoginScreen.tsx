@@ -15,26 +15,23 @@ export default function LoginScreen() {
   };
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-[#0F0F0F] z-[100] fixed inset-0">
+    <div className="h-screen w-screen flex items-center justify-center bg-[#0F0F0F] fixed inset-0 z-[100]">
       <form
         onSubmit={handleSubmit}
         className="bg-[#1A1A1A] p-8 rounded-2xl border border-white/5 shadow-2xl w-80 space-y-6"
       >
-        <div className="flex justify-center">
-          <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-500">
-            <Lock size={24} />
-          </div>
+        <div className="flex justify-center text-blue-500">
+          <Lock size={32} />
         </div>
-        <div className="text-center space-y-1">
-          <h1 className="font-bold text-xl text-white">LaunchPad</h1>
-          <p className="text-xs text-gray-500">認証が必要です</p>
-        </div>
+        <h1 className="text-center font-bold text-xl text-white">
+          LaunchPad Unlock
+        </h1>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-blue-500 outline-none transition-all text-white"
+          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-blue-500 outline-none text-white"
           autoFocus
         />
         <button
