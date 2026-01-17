@@ -10,7 +10,7 @@ import {
   parseISO,
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Plus, Rocket } from 'lucide-react';
+import { Plus, ExternalLink } from 'lucide-react';
 
 export default function Dashboard() {
   const [columns, setColumns] = useState<{ [key: string]: any[] }>({});
@@ -23,22 +23,15 @@ export default function Dashboard() {
         const data = await res.json();
         const allTasks = data.results || [];
 
-        // 1. Cat = Work フィルタリング
-        const workTasks = allTasks.filter((task: any) => {
-          const cats = task.properties?.Cat?.multi_select || [];
-          return cats.some((cat: any) => cat.name === 'Work');
-        });
-
         const today = startOfDay(new Date());
         const cols: { [key: string]: any[] } = { Overdue: [] };
 
-        // 今日から6日後までの計7日分の枠を作成
         for (let i = 0; i < 7; i++) {
           const dateKey = format(addDays(today, i), 'yyyy-MM-dd');
           cols[dateKey] = [];
         }
 
-        workTasks.forEach((task: any) => {
+        allTasks.forEach((task: any) => {
           const dateProp = task.properties?.Date?.date?.start;
           if (!dateProp) return;
 
@@ -64,112 +57,121 @@ export default function Dashboard() {
     fetchTasks();
   }, []);
 
+  // Stateに応じたドットの色を決定する関数
+  const getStateColor = (state: string) => {
+    switch (state) {
+      case 'Doing':
+        return 'bg-blue-500';
+      case 'Todo':
+        return 'bg-gray-500';
+      case 'Review':
+        return 'bg-purple-500';
+      default:
+        return 'bg-gray-700';
+    }
+  };
+
   if (loading)
-    return (
-      <div className="p-8 text-gray-500 animate-pulse">
-        Syncing with Notion...
-      </div>
-    );
+    return <div className="p-8 text-gray-500">Syncing LaunchPad...</div>;
 
   const todayStr = format(new Date(), 'yyyy-MM-dd');
 
   return (
     <div className="flex flex-col h-full bg-[#0F0F0F]">
-      {/* サブヘッダー */}
       <div className="px-8 pt-6 pb-2 flex items-baseline justify-between shrink-0">
-        <h2 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
+        <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
           Weekly Focus
         </h2>
-        <div className="text-[10px] text-gray-600 font-mono uppercase">
-          {format(new Date(), 'MMM dd', { locale: ja })} -{' '}
-          {format(addDays(new Date(), 6), 'MMM dd, yyyy', { locale: ja })}
+        <div className="text-[11px] text-gray-500 font-mono">
+          {format(new Date(), 'MM/dd')} -{' '}
+          {format(addDays(new Date(), 6), 'MM/dd')}
         </div>
       </div>
 
-      {/* ボードエリア */}
       <main className="flex-1 overflow-x-auto flex p-6 space-x-2 no-scrollbar">
         {Object.entries(columns).map(([dateKey, tasks]) => {
           const isToday = dateKey === todayStr;
           const isOverdue = dateKey === 'Overdue';
-
-          // 表示用のラベル作成
-          let label = '';
-          if (isOverdue) label = 'OVERDUE';
-          else {
-            const dateObj = parseISO(dateKey);
-            label = format(dateObj, 'dd EEE', { locale: ja }).toUpperCase();
-          }
+          let label = isOverdue
+            ? 'OVERDUE'
+            : format(parseISO(dateKey), 'dd EEE', { locale: ja }).toUpperCase();
 
           return (
             <div
               key={dateKey}
-              className={`min-w-[260px] max-w-[260px] p-2 flex flex-col rounded-xl transition-colors ${
-                isToday
-                  ? 'bg-blue-500/5 ring-1 ring-inset ring-blue-500/10'
-                  : 'bg-transparent'
-              }`}
+              className={`min-w-[280px] max-w-[280px] p-2 flex flex-col rounded-xl ${isToday ? 'bg-blue-500/5' : ''}`}
             >
-              {/* カラムタイトル */}
               <div
-                className={`text-[11px] font-bold mb-4 px-2 flex items-center justify-between ${
-                  isToday
-                    ? 'text-blue-400'
-                    : isOverdue
-                      ? 'text-red-500'
-                      : 'text-gray-500'
-                }`}
+                className={`text-[11px] font-bold mb-4 px-2 flex items-center justify-between ${isToday ? 'text-blue-400' : isOverdue ? 'text-red-500' : 'text-gray-500'}`}
               >
                 <span>{label}</span>
                 {isToday && (
-                  <span className="text-[8px] bg-blue-400/20 px-1.5 py-0.5 rounded tracking-tighter">
+                  <span className="text-[9px] bg-blue-400/20 px-1.5 py-0.5 rounded">
                     TODAY
                   </span>
                 )}
-                <span className="text-[9px] opacity-40 font-normal">
-                  {tasks.length}
-                </span>
               </div>
 
-              {/* タスクカード群 */}
               <div className="space-y-2 overflow-y-auto no-scrollbar pb-10">
-                {tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`p-3 rounded-lg bg-[#1E1E1E] border border-white/5 shadow-sm hover:border-white/10 transition-all group border-l-2 ${
-                      isOverdue
-                        ? 'border-l-red-500'
-                        : isToday
-                          ? 'border-l-blue-400'
-                          : 'border-l-gray-700'
-                    }`}
-                  >
-                    <h4 className="text-[11px] font-semibold text-gray-200 leading-tight group-hover:text-white">
-                      {task.properties?.Name?.title?.[0]?.plain_text ||
-                        'Untitled'}
-                    </h4>
-                    {/* カテゴリバッジ */}
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {task.properties?.Cat?.multi_select?.map((cat: any) => (
-                        <span
-                          key={cat.name}
-                          className="text-[8px] px-1 bg-white/5 text-gray-500 rounded"
-                        >
-                          {cat.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                {tasks.map((task) => {
+                  const stateName =
+                    task.properties?.State?.status?.name ||
+                    task.properties?.State?.select?.name ||
+                    'Todo';
+                  const cats = task.properties?.Cat?.multi_select || [];
+                  const subCats = task.properties?.SubCat?.multi_select || [];
 
-                {/* 空の状態のプレースホルダー */}
-                {tasks.length === 0 && (
-                  <div className="border border-dashed border-white/5 h-16 rounded-lg flex items-center justify-center group hover:border-white/10 transition-colors cursor-pointer">
-                    <Plus
-                      size={14}
-                      className="text-gray-800 group-hover:text-gray-600"
-                    />
-                  </div>
-                )}
+                  return (
+                    <div
+                      key={task.id}
+                      className="task-card group p-3 rounded-lg bg-[#1E1E1E] border border-white/5 relative"
+                    >
+                      {/* Notionリンクボタン */}
+                      <a
+                        href={task.public_url || task.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute top-2 right-2 p-1.5 rounded-md bg-white/0 hover:bg-white/5 text-gray-600 hover:text-gray-300 transition-colors"
+                      >
+                        <ExternalLink size={12} />
+                      </a>
+
+                      <div className="flex items-start pr-6">
+                        {/* ステータスドット */}
+                        <div
+                          className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${getStateColor(stateName)}`}
+                        />
+
+                        <div className="ml-2 flex-1">
+                          <h4 className="text-[11px] font-medium text-gray-200 leading-snug">
+                            {task.properties?.Name?.title?.[0]?.plain_text ||
+                              'Untitled'}
+                          </h4>
+
+                          {/* 下部バッジエリア */}
+                          <div className="mt-3 flex flex-wrap gap-1">
+                            {cats.map((cat: any) => (
+                              <span
+                                key={cat.name}
+                                className="text-[8px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400/80 rounded"
+                              >
+                                {cat.name}
+                              </span>
+                            ))}
+                            {subCats.map((scat: any) => (
+                              <span
+                                key={scat.name}
+                                className="text-[8px] px-1.5 py-0.5 bg-white/5 text-gray-500 rounded border border-white/5"
+                              >
+                                {scat.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
