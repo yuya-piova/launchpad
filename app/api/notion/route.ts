@@ -13,23 +13,41 @@ export async function GET() {
       );
     }
 
-    // Notion側でフィルタリングとソートを行う
+    // フィルタ条件をANDで結合
     const response = await notion.databases.query({
       database_id: databaseId,
       filter: {
-        // 'Cat' プロパティに 'Work' が含まれるものだけを取得
-        property: 'Cat',
-        multi_select: {
-          contains: 'Work',
-        },
+        and: [
+          {
+            // 条件1: CatにWorkが含まれる
+            property: 'Cat',
+            multi_select: {
+              contains: 'Work',
+            },
+          },
+          {
+            // 条件2: State（またはStatus）がDoneでない
+            property: 'State',
+            status: {
+              does_not_equal: 'Done',
+            },
+          },
+          {
+            // 条件3: State（またはStatus）がCanceledでない
+            property: 'State',
+            status: {
+              does_not_equal: 'Canceled',
+            },
+          },
+        ],
       },
       sorts: [
         {
           property: 'Date',
-          direction: 'ascending', // 日付が古い順（Overdueが先に来るように）
+          direction: 'ascending',
         },
       ],
-      page_size: 100, // 余裕を持って100件取得
+      page_size: 100,
     });
 
     return NextResponse.json(response);

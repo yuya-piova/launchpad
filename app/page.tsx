@@ -19,7 +19,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchTasks() {
       try {
-        const res = await fetch('/api/notion-test');
+        const res = await fetch('/api/notion');
         const data = await res.json();
         const allTasks = data.results || [];
 
