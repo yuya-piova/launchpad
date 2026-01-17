@@ -79,9 +79,9 @@ export default function ClientLayout({
 
           {/* メインエリア */}
           <div className="flex-1 flex flex-col min-w-0">
-            <header className="h-[72px] border-b border-white/5 flex items-center justify-between px-8 bg-[#0F0F0F]/80 backdrop-blur-xl shrink-0">
-              <div className="flex items-center space-x-4">
-                {/* 時計部分の修正：mountedがtrueになるまで表示を隠すかダミーを表示 */}
+            <header className="h-[72px] border-b border-white/5 flex items-center px-8 bg-[#0F0F0F]/80 backdrop-blur-xl shrink-0">
+              {/* 左側：時計と日付 */}
+              <div className="flex items-center space-x-4 w-48 shrink-0">
                 {mounted ? (
                   <>
                     <div className="text-3xl font-light tabular-nums tracking-tighter">
@@ -102,23 +102,43 @@ export default function ClientLayout({
                     </div>
                   </>
                 ) : (
-                  <div className="h-10 w-32 bg-white/5 animate-pulse rounded" /> // 読み込み中のプレースホルダー
+                  <div className="h-10 w-32 bg-white/5 animate-pulse rounded" />
                 )}
               </div>
 
-              <div className="flex-1 max-w-xl mx-12">
-                <div className="bg-white/5 border border-white/10 flex items-center px-4 py-2 rounded-full">
+              {/* 中央：Quick Add (ここがメインの入力欄になります) */}
+              <div className="flex-1 max-w-xl mx-auto">
+                <div className="bg-white/5 border border-white/10 flex items-center px-4 py-2 rounded-full focus-within:border-blue-500/50 transition-all">
                   <Plus size={16} className="text-gray-500 mr-3" />
                   <input
                     type="text"
-                    placeholder="Quick Add..."
-                    className="bg-transparent border-none outline-none w-full text-sm"
+                    placeholder="Quick Add Task..."
+                    onKeyDown={/* ここに handleQuickAdd を接続 */}
+                    className="bg-transparent border-none outline-none w-full text-sm text-gray-200 placeholder:text-gray-600"
                   />
+                  <kbd className="text-[9px] text-gray-600 ml-2 font-mono">
+                    ENTER
+                  </kbd>
                 </div>
+              </div>
+
+              {/* 右側：Quick Links */}
+              <div className="w-48 flex items-center justify-end space-x-3 shrink-0">
+                <button className="p-2 hover:bg-white/5 rounded-full text-gray-500 transition-colors">
+                  <Bell size={18} />
+                </button>
+                <div className="w-px h-4 bg-white/10 mx-1"></div>
+                <button className="bg-white/5 border border-white/10 px-3 py-1.5 rounded-md text-[11px] font-bold flex items-center hover:bg-white/10 transition-all group">
+                  <Bot
+                    size={14}
+                    className="mr-2 text-purple-400 group-hover:scale-110 transition-transform"
+                  />
+                  AI議事録
+                </button>
               </div>
             </header>
 
-            <main className="flex-1 overflow-auto p-8">{children}</main>
+            <main className="flex-1 overflow-auto">{children}</main>
           </div>
         </div>
       </AuthGuard>
