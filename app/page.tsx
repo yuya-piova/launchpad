@@ -164,7 +164,7 @@ export default function Dashboard() {
                           className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${dotColor}`}
                         />
                         <div className="ml-2 pr-4 flex-1">
-                          <h4 className="text-[11px] font-medium text-gray-200 leading-snug">
+                          <h4 className="text-[13px]font-semibold text-gray-100 leading-snug group-hover:text-white">
                             {task.properties?.Name?.title?.[0]?.plain_text ||
                               'Untitled'}
                           </h4>

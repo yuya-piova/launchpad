@@ -26,10 +26,12 @@ export async function POST(req: Request) {
         Cat: {
           multi_select: [{ name: 'Work' }],
         },
-        // ステータス: Todo (ステータス型またはセレクト型に合わせて調整)
+        SubCat: {
+          multi_select: [{ name: 'Task' }],
+        },
+        // ステータス: INBOX
         State: {
-          status: { name: 'Todo' },
-          // もしセレクト型なら status を select に変えてください
+          status: { name: 'INBOX' },
         },
         // 日付: 今日
         Date: {

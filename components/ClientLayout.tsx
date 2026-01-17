@@ -59,6 +59,19 @@ export default function ClientLayout({
     }
   };
 
+  const handleCreateMeeting = async () => {
+    try {
+      const res = await fetch('/api/notion/meeting', { method: 'POST' });
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, '_blank'); // Notionを別タブで開く
+        window.location.reload(); // ボード側にも新タスクとして表示させる
+      }
+    } catch (err) {
+      console.error('Failed to create meeting', err);
+    }
+  };
+
   return (
     <AuthProvider>
       <AuthGuard>
@@ -155,7 +168,10 @@ export default function ClientLayout({
                   <Bell size={18} />
                 </button>
                 <div className="w-px h-4 bg-white/10 mx-1"></div>
-                <button className="bg-white/5 border border-white/10 px-3 py-1.5 rounded-md text-[11px] font-bold flex items-center hover:bg-white/10 transition-all group">
+                <button
+                  onClick={handleCreateMeeting}
+                  className="bg-white/5 border border-white/10 px-3 py-1.5 rounded-md text-[11px] font-bold flex items-center hover:bg-white/10 transition-all group"
+                >
                   <Bot
                     size={14}
                     className="mr-2 text-purple-400 group-hover:scale-110 transition-transform"
