@@ -5,9 +5,10 @@ import {
   LayoutDashboard,
   Calendar,
   MessageSquare,
-  GraduationCap,
   Rocket,
   Plus,
+  Bell, // 追加
+  Bot, // 追加
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './AuthProvider';
 import LoginScreen from './LoginScreen';
@@ -25,13 +26,38 @@ export default function ClientLayout({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [time, setTime] = useState(new Date());
-  const [mounted, setMounted] = useState(false); // マウント状態を管理
+  const [mounted, setMounted] = useState(false);
+  const [quickTask, setQuickTask] = useState(''); // 追加
 
   useEffect(() => {
-    setMounted(true); // ブラウザで読み込まれたらtrueにする
+    setMounted(true);
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Quick Add 送信ロジックの実装
+  const handleQuickAdd = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && quickTask.trim()) {
+      const title = quickTask;
+      setQuickTask(''); // 入力欄をクリア
+
+      try {
+        const res = await fetch('/api/notion/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title }),
+        });
+
+        if (res.ok) {
+          // ページをリロードしてNotionの最新データを反映
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error('Quick Add failed', err);
+        setQuickTask(title); // 失敗したら入力を戻す
+      }
+    }
+  };
 
   return (
     <AuthProvider>
@@ -45,8 +71,7 @@ export default function ClientLayout({
               isHovered ? 'w-60' : 'w-16'
             } transition-all duration-300 ease-in-out border-r border-white/5 bg-[#1A1A1A] flex flex-col z-50`}
           >
-            {/* ...サイドバーの中身はそのまま... */}
-            <div className="h-[72px] flex items-center px-4 mb-4 overflow-hidden">
+            <div className="h-[72px] flex items-center px-4 mb-4 overflow-hidden shrink-0">
               <div className="w-8 h-8 bg-blue-600 rounded flex-shrink-0 flex items-center justify-center">
                 <Rocket size={18} className="text-white" />
               </div>
@@ -106,14 +131,16 @@ export default function ClientLayout({
                 )}
               </div>
 
-              {/* 中央：Quick Add (ここがメインの入力欄になります) */}
+              {/* 中央：Quick Add */}
               <div className="flex-1 max-w-xl mx-auto">
                 <div className="bg-white/5 border border-white/10 flex items-center px-4 py-2 rounded-full focus-within:border-blue-500/50 transition-all">
                   <Plus size={16} className="text-gray-500 mr-3" />
                   <input
                     type="text"
+                    value={quickTask}
+                    onChange={(e) => setQuickTask(e.target.value)}
+                    onKeyDown={handleQuickAdd}
                     placeholder="Quick Add Task..."
-                    onKeyDown={/* ここに handleQuickAdd を接続 */}
                     className="bg-transparent border-none outline-none w-full text-sm text-gray-200 placeholder:text-gray-600"
                   />
                   <kbd className="text-[9px] text-gray-600 ml-2 font-mono">
