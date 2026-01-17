@@ -25,9 +25,10 @@ export default function ClientLayout({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [time, setTime] = useState(new Date());
+  const [mounted, setMounted] = useState(false); // マウント状態を管理
 
-  // 時計の更新
   useEffect(() => {
+    setMounted(true); // ブラウザで読み込まれたらtrueにする
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -35,8 +36,7 @@ export default function ClientLayout({
   return (
     <AuthProvider>
       <AuthGuard>
-        <div className="flex h-screen w-screen overflow-hidden"></div>
-        <div className="flex h-screen w-screen overflow-hidden">
+        <div className="flex h-screen w-screen overflow-hidden bg-[#0F0F0F] text-[#E5E5E5]">
           {/* サイドバー */}
           <aside
             onMouseEnter={() => setIsHovered(true)}
@@ -45,6 +45,7 @@ export default function ClientLayout({
               isHovered ? 'w-60' : 'w-16'
             } transition-all duration-300 ease-in-out border-r border-white/5 bg-[#1A1A1A] flex flex-col z-50`}
           >
+            {/* ...サイドバーの中身はそのまま... */}
             <div className="h-[72px] flex items-center px-4 mb-4 overflow-hidden">
               <div className="w-8 h-8 bg-blue-600 rounded flex-shrink-0 flex items-center justify-center">
                 <Rocket size={18} className="text-white" />
@@ -56,7 +57,7 @@ export default function ClientLayout({
               </span>
             </div>
 
-            <nav className="flex-1 px-3 space-y-2 overflow-hidden">
+            <nav className="flex-1 px-3 space-y-2">
               <NavItem
                 icon={<LayoutDashboard size={20} />}
                 label="Dashboard"
@@ -74,57 +75,47 @@ export default function ClientLayout({
                 isOpen={isHovered}
               />
             </nav>
-
-            {/* 駿台Diverseリンク */}
-            <div className="p-3 border-t border-white/5 overflow-hidden">
-              <a
-                href="https://lms2.s-diverse.com"
-                target="_blank"
-                className="flex items-center px-2 py-2.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-orange-400 transition-colors"
-              >
-                <GraduationCap size={20} className="flex-shrink-0" />
-                <span
-                  className={`ml-4 text-xs font-semibold whitespace-nowrap transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
-                >
-                  駿台Diverse LMS
-                </span>
-              </a>
-            </div>
           </aside>
 
           {/* メインエリア */}
           <div className="flex-1 flex flex-col min-w-0">
-            {/* 固定ヘッダー */}
             <header className="h-[72px] border-b border-white/5 flex items-center justify-between px-8 bg-[#0F0F0F]/80 backdrop-blur-xl shrink-0">
               <div className="flex items-center space-x-4">
-                <div className="text-3xl font-light tabular-nums tracking-tighter">
-                  {time.toLocaleTimeString('ja-JP', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </div>
-                <div className="text-xs text-gray-500 leading-tight">
-                  {time.toLocaleDateString('ja-JP', {
-                    month: '2-digit',
-                    day: '2-digit',
-                  })}
-                  <br />
-                  {time
-                    .toLocaleDateString('en-US', { weekday: 'short' })
-                    .toUpperCase()}
-                </div>
+                {/* 時計部分の修正：mountedがtrueになるまで表示を隠すかダミーを表示 */}
+                {mounted ? (
+                  <>
+                    <div className="text-3xl font-light tabular-nums tracking-tighter">
+                      {time.toLocaleTimeString('ja-JP', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                    <div className="text-xs text-gray-500 leading-tight">
+                      {time.toLocaleDateString('ja-JP', {
+                        month: '2-digit',
+                        day: '2-digit',
+                      })}
+                      <br />
+                      {time
+                        .toLocaleDateString('en-US', { weekday: 'short' })
+                        .toUpperCase()}
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-10 w-32 bg-white/5 animate-pulse rounded" /> // 読み込み中のプレースホルダー
+                )}
               </div>
+
               <div className="flex-1 max-w-xl mx-12">
-                <div className="bg-white/5 border border-white/10 flex items-center px-4 py-2 rounded-full focus-within:border-blue-500/50 transition-all">
+                <div className="bg-white/5 border border-white/10 flex items-center px-4 py-2 rounded-full">
                   <Plus size={16} className="text-gray-500 mr-3" />
                   <input
                     type="text"
-                    placeholder="Task, Date, Description..."
+                    placeholder="Quick Add..."
                     className="bg-transparent border-none outline-none w-full text-sm"
                   />
                 </div>
               </div>
-              <div className="w-32 hidden md:block" /> {/* バランス調整用 */}
             </header>
 
             <main className="flex-1 overflow-auto p-8">{children}</main>
@@ -135,7 +126,6 @@ export default function ClientLayout({
   );
 }
 
-// サブコンポーネント
 function NavItem({
   icon,
   label,
