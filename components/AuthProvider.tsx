@@ -13,18 +13,14 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  // useStateの初期値として関数を渡す（Lazy initializer）ことで
-  // useEffectを使わずに同期的に初期状態を決定し、警告を回避します
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  // マウント時に一度だけ確認（ブラウザ環境のみで実行）
-  useEffect(() => {
-    const auth =
-      typeof window !== 'undefined' ? sessionStorage.getItem('is_auth') : null;
-    if (auth === 'true') {
-      setIsAuthenticated(true);
+  // useState の初期値に関数を渡す（Lazy Initialization）
+  // これにより、useEffectを使わずに初回レンダリング時に一度だけセッションを確認できます
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('is_auth') === 'true';
     }
-  }, []);
+    return false;
+  });
 
   const login = async (password: string) => {
     try {
