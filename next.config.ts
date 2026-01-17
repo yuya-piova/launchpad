@@ -6,9 +6,9 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ここは空でOKです
+  // 必要最小限の設定
+  reactStrictMode: true,
 };
 
 export default withPWA(nextConfig);
