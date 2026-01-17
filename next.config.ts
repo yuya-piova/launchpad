@@ -1,7 +1,14 @@
-import type { NextConfig } from 'next';
+// @ts-nocheck
+import withPWAInit from '@ducanh2912/next-pwa';
 
-const nextConfig: NextConfig = {
-  /* ひとまず空にする */
+const withPWA = withPWAInit({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+});
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // ここは空でOKです
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);
