@@ -7,15 +7,12 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig = {
-  // 脆弱性によるビルド中断を回避（Vercel側で弾かれるのを防ぐおまじない）
-  experimental: {
-    // 15.1.x系でセキュリティチェックをバイパスする設定
-    missingSuspenseWithCSRBypass: true,
-  },
   typescript: {
+    // Vercel上での型チェックをスキップしてビルド速度を上げ、エラー停止を防ぐ
     ignoreBuildErrors: true,
   },
   eslint: {
+    // ビルド時のESLintチェックをスキップ
     ignoreDuringBuilds: true,
   },
 };
