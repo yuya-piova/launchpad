@@ -7,15 +7,13 @@ import {
   MessageSquare,
   Rocket,
   Plus,
-  Bell, // 追加
-  Bot, // 追加
+  Bell,
+  Bot,
 } from 'lucide-react';
-import { AuthProvider, useAuth } from './AuthProvider';
-import LoginScreen from './LoginScreen';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const pathname = usePathname();
+import { AuthProvider, useAuth } from './AuthProvider';
+import LoginScreen from './LoginScreen';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -23,6 +21,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// メインコンポーネント
 export default function ClientLayout({
   children,
 }: {
@@ -31,7 +30,8 @@ export default function ClientLayout({
   const [isHovered, setIsHovered] = useState(false);
   const [time, setTime] = useState(new Date());
   const [mounted, setMounted] = useState(false);
-  const [quickTask, setQuickTask] = useState(''); // 追加
+  const [quickTask, setQuickTask] = useState('');
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
@@ -39,26 +39,20 @@ export default function ClientLayout({
     return () => clearInterval(timer);
   }, []);
 
-  // Quick Add 送信ロジックの実装
   const handleQuickAdd = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && quickTask.trim()) {
       const title = quickTask;
-      setQuickTask(''); // 入力欄をクリア
-
+      setQuickTask('');
       try {
         const res = await fetch('/api/notion/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title }),
         });
-
-        if (res.ok) {
-          // ページをリロードしてNotionの最新データを反映
-          window.location.reload();
-        }
+        if (res.ok) window.location.reload();
       } catch (err) {
         console.error('Quick Add failed', err);
-        setQuickTask(title); // 失敗したら入力を戻す
+        setQuickTask(title);
       }
     }
   };
@@ -68,8 +62,8 @@ export default function ClientLayout({
       const res = await fetch('/api/notion/meeting', { method: 'POST' });
       const data = await res.json();
       if (data.url) {
-        window.open(data.url, '_blank'); // Notionを別タブで開く
-        window.location.reload(); // ボード側にも新タスクとして表示させる
+        window.open(data.url, '_blank');
+        window.location.reload();
       }
     } catch (err) {
       console.error('Failed to create meeting', err);
@@ -80,7 +74,6 @@ export default function ClientLayout({
     <AuthProvider>
       <AuthGuard>
         <div className="flex h-screen w-screen overflow-hidden bg-[#0F0F0F] text-[#E5E5E5]">
-          {/* サイドバー */}
           <aside
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -119,10 +112,8 @@ export default function ClientLayout({
             </nav>
           </aside>
 
-          {/* メインエリア */}
           <div className="flex-1 flex flex-col min-w-0">
             <header className="h-[72px] border-b border-white/5 flex items-center px-8 bg-[#0F0F0F]/80 backdrop-blur-xl shrink-0">
-              {/* 左側：時計と日付 */}
               <div className="flex items-center space-x-4 w-48 shrink-0">
                 {mounted ? (
                   <>
@@ -148,7 +139,6 @@ export default function ClientLayout({
                 )}
               </div>
 
-              {/* 中央：Quick Add */}
               <div className="flex-1 max-w-xl mx-auto">
                 <div className="bg-white/5 border border-white/10 flex items-center px-4 py-2 rounded-full focus-within:border-blue-500/50 transition-all">
                   <Plus size={16} className="text-gray-500 mr-3" />
@@ -166,7 +156,6 @@ export default function ClientLayout({
                 </div>
               </div>
 
-              {/* 右側：Quick Links */}
               <div className="w-48 flex items-center justify-end space-x-3 shrink-0">
                 <button className="p-2 hover:bg-white/5 rounded-full text-gray-500 transition-colors">
                   <Bell size={18} />
@@ -184,8 +173,9 @@ export default function ClientLayout({
                 </button>
               </div>
             </header>
-
-            <main className="flex-1 overflow-auto">{children}</main>
+            <main className="flex-1 overflow-auto no-scrollbar">
+              {children}
+            </main>
           </div>
         </div>
       </AuthGuard>
@@ -193,6 +183,7 @@ export default function ClientLayout({
   );
 }
 
+// ★NavItem は必ず ClientLayout の「外」に定義する
 function NavItem({
   icon,
   label,
