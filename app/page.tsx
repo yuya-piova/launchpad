@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Circle, Clock, Tag } from 'lucide-react';
+import { format, isBefore, isSameDay, addDays, startOfDay } from 'date-fns';
+import { ja } from 'date-fns/locale';
 
 export default function Dashboard() {
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [columns, setColumns] = useState<{ [key: string]: any[] }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,7 +13,46 @@ export default function Dashboard() {
       try {
         const res = await fetch('/api/notion-test');
         const data = await res.json();
-        setTasks(data.results || []);
+        const allTasks = data.results || [];
+
+        // 1. Cat = Work でフィルタリング
+        const workTasks = allTasks.filter((task: any) => {
+          const cats = task.properties?.Cat?.multi_select || [];
+          return cats.some((cat: any) => cat.name === 'Work');
+        });
+
+        // 2. 日付ごとに分類するロジック
+        const today = startOfDay(new Date());
+        const cols: { [key: string]: any[] } = {
+          Overdue: [],
+          Today: [],
+        };
+
+        // 今日から6日後までの枠を作る
+        for (let i = 1; i <= 6; i++) {
+          const dateStr = format(addDays(today, i), 'yyyy-MM-dd');
+          cols[dateStr] = [];
+        }
+
+        workTasks.forEach((task: any) => {
+          const dateProp = task.properties?.Date?.date?.start;
+          if (!dateProp) return;
+
+          const taskDate = startOfDay(new Date(dateProp));
+
+          if (isBefore(taskDate, today)) {
+            cols['Overdue'].push(task);
+          } else if (isSameDay(taskDate, today)) {
+            cols['Today'].push(task);
+          } else {
+            const dateKey = format(taskDate, 'yyyy-MM-dd');
+            if (cols[dateKey]) {
+              cols[dateKey].push(task);
+            }
+          }
+        });
+
+        setColumns(cols);
       } catch (err) {
         console.error('Failed to fetch tasks', err);
       } finally {
@@ -22,92 +62,67 @@ export default function Dashboard() {
     fetchTasks();
   }, []);
 
+  if (loading)
+    return <div className="p-8 text-gray-500">Loading woche board...</div>;
+
   return (
-    <div className="max-w-6xl mx-auto space-y-10">
-      {/* ヒーローセクション */}
-      <section>
-        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-[0.2em] mb-4">
-          Focus
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-8 bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-white/10 rounded-3xl backdrop-blur-sm">
-            <h3 className="text-xl font-semibold mb-2">Welcome back.</h3>
-            <p className="text-gray-400 text-sm">
-              You have {tasks.length} active tasks today.
-            </p>
-          </div>
-        </div>
-      </section>
+    <div className="h-full overflow-x-auto overflow-y-hidden">
+      <div
+        className="flex h-full gap-4 pb-4"
+        style={{ minWidth: 'max-content' }}
+      >
+        {Object.keys(columns).map((key) => (
+          <div key={key} className="w-72 flex flex-col shrink-0">
+            {/* カラムヘッダー */}
+            <div className="mb-4 px-2">
+              <h3
+                className={`text-xs font-bold tracking-widest uppercase ${key === 'Overdue' ? 'text-red-500' : 'text-gray-400'}`}
+              >
+                {key === 'Today'
+                  ? 'TODAY'
+                  : key === 'Overdue'
+                    ? 'OVERDUE'
+                    : format(new Date(key), 'EEE d MMM', {
+                        locale: ja,
+                      }).toUpperCase()}
+              </h3>
+              <div className="text-[10px] text-gray-600">
+                {columns[key].length} TASKS
+              </div>
+            </div>
 
-      {/* タスクセクション（woche風カード） */}
-      <section>
-        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-[0.2em] mb-4">
-          Tasks
-        </h2>
-
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-40 bg-white/5 animate-pulse rounded-2xl border border-white/5"
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tasks.map((task: any) => {
-              const title =
-                task.properties?.Name?.title?.[0]?.plain_text || 'Untitled';
-              const status =
-                task.properties?.Status?.select?.name || 'No Status';
-              const date = task.properties?.Date?.date?.start || '';
-
-              return (
+            {/* タスクリスト（スクロールエリア） */}
+            <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+              {columns[key].map((task: any) => (
                 <div
                   key={task.id}
-                  className="group relative p-5 bg-[#1A1A1A]/50 border border-white/5 rounded-2xl hover:bg-[#1A1A1A] hover:border-blue-500/30 transition-all duration-300"
+                  className="p-3 bg-[#1A1A1A] border border-white/5 rounded-lg hover:border-white/20 transition-all group cursor-pointer"
                 >
-                  <div className="flex flex-col h-full justify-between space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-medium tracking-wide uppercase ${
-                            status === 'Done'
-                              ? 'bg-green-500/10 text-green-500'
-                              : 'bg-blue-500/10 text-blue-500'
-                          }`}
-                        >
-                          {status}
-                        </span>
-                        {date && (
-                          <span className="text-[10px] text-gray-500 font-mono">
-                            {date}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-base font-medium text-gray-200 group-hover:text-white leading-snug">
-                        {title}
-                      </h3>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                      <div className="flex -space-x-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-gray-700 to-gray-600 border border-[#1A1A1A] flex items-center justify-center text-[8px]">
-                          YP
-                        </div>
-                      </div>
-                      <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-white/5 rounded-full">
-                        <CheckCircle2 size={16} className="text-gray-500" />
-                      </button>
-                    </div>
+                  <div className="text-xs text-gray-300 leading-relaxed mb-2">
+                    {task.properties?.Name?.title?.[0]?.plain_text ||
+                      'Untitled'}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {task.properties?.Cat?.multi_select.map((cat: any) => (
+                      <span
+                        key={cat.id}
+                        className="text-[8px] px-1.5 py-0.5 bg-white/5 text-gray-500 rounded"
+                      >
+                        {cat.name}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
+              ))}
+              {columns[key].length === 0 && (
+                <div className="h-20 border border-dashed border-white/5 rounded-lg flex items-center justify-center text-[10px] text-gray-700">
+                  NO TASKS
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </section>
+        ))}
+      </div>
     </div>
   );
 }
