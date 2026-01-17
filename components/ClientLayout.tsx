@@ -12,6 +12,10 @@ import {
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './AuthProvider';
 import LoginScreen from './LoginScreen';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+const pathname = usePathname();
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -96,22 +100,22 @@ export default function ClientLayout({
             </div>
 
             <nav className="flex-1 px-3 space-y-2">
-              <NavItem
-                icon={<LayoutDashboard size={20} />}
-                label="Dashboard"
-                active
-                isOpen={isHovered}
-              />
-              <NavItem
-                icon={<Calendar size={20} />}
-                label="Monthly"
-                isOpen={isHovered}
-              />
-              <NavItem
-                icon={<MessageSquare size={20} />}
-                label="Meeting"
-                isOpen={isHovered}
-              />
+              <Link href="/">
+                <NavItem
+                  icon={<LayoutDashboard size={20} />}
+                  label="Dashboard"
+                  active={pathname === '/'}
+                  isOpen={isHovered}
+                />
+              </Link>
+              <Link href="/meeting">
+                <NavItem
+                  icon={<MessageSquare size={20} />}
+                  label="Meeting"
+                  active={pathname === '/meeting'}
+                  isOpen={isHovered}
+                />
+              </Link>
             </nav>
           </aside>
 
