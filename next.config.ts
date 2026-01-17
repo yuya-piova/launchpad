@@ -8,11 +8,9 @@ const withPWA = withPWAInit({
 
 const nextConfig = {
   typescript: {
-    // Vercel上での型チェックをスキップしてビルド速度を上げ、エラー停止を防ぐ
     ignoreBuildErrors: true,
   },
   eslint: {
-    // ビルド時のESLintチェックをスキップ
     ignoreDuringBuilds: true,
   },
 };
