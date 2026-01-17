@@ -1,14 +1,7 @@
-// @ts-nocheck
-import withPWAInit from '@ducanh2912/next-pwa';
+import type { NextConfig } from 'next';
 
-const withPWA = withPWAInit({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-});
-
-const nextConfig = {
-  // 必要最小限の設定
-  reactStrictMode: true,
+const nextConfig: NextConfig = {
+  /* ここは一旦空にする */
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
